@@ -1,0 +1,38 @@
+{{define "content"}}
+<section class="page-head">
+  <div class="wrap">
+    <span class="eyebrow">For sale</span>
+    <h1>Properties for sale</h1>
+    <form class="filters" method="get" action="/properties">
+      <label>Bedrooms
+        <select name="beds">
+          <option value="0">Any</option>
+          {{range .Data.BedOptions}}<option value="{{.}}"{{if eq . $.Data.MinBeds}} selected{{end}}>{{.}}+</option>{{end}}
+        </select>
+      </label>
+      <label>Max price
+        <select name="max_price">
+          <option value="0">No max</option>
+          {{range .Data.PriceOptions}}<option value="{{.}}"{{if eq . $.Data.MaxPrice}} selected{{end}}>{{price .}}</option>{{end}}
+        </select>
+      </label>
+      <label>Sort by
+        <select name="sort">
+          <option value="newest"{{if eq .Data.Sort "newest"}} selected{{end}}>Newest</option>
+          <option value="price_desc"{{if eq .Data.Sort "price_desc"}} selected{{end}}>Highest price</option>
+          <option value="price_asc"{{if eq .Data.Sort "price_asc"}} selected{{end}}>Lowest price</option>
+        </select>
+      </label>
+      <button class="btn btn--brand" type="submit">Search</button>
+    </form>
+  </div>
+</section>
+<section class="section">
+  <div class="wrap">
+    <p class="muted">{{len .Data.Properties}} {{if eq (len .Data.Properties) 1}}property{{else}}properties{{end}} found</p>
+    <div class="grid-3">
+      {{range .Data.Properties}}{{template "card" .}}{{else}}<p>No properties match your search. Try widening your filters.</p>{{end}}
+    </div>
+  </div>
+</section>
+{{end}}

@@ -1,0 +1,30 @@
+{{define "layout"}}<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{.Title}} | {{.Settings.AgencyName}} admin</title>
+<link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/css/admin.css">
+<style>:root{--brand:{{.Settings.PrimaryColor}};--accent:{{.Settings.AccentColor}}}</style>
+</head>
+<body class="admin">
+<header class="admin-bar">
+  <a class="admin-brand" href="/admin">{{.Settings.AgencyName}} <span>Admin</span></a>
+  <nav>
+    <a href="/admin"{{if eq .Section "dashboard"}} class="is-active"{{end}}>Properties</a>
+    <a href="/admin/properties/new"{{if eq .Section "new"}} class="is-active"{{end}}>Add property</a>
+    <a href="/admin/enquiries"{{if eq .Section "enquiries"}} class="is-active"{{end}}>Enquiries</a>
+    <a href="/admin/settings"{{if eq .Section "settings"}} class="is-active"{{end}}>Branding &amp; settings</a>
+    <a href="/" target="_blank" rel="noopener">View site &#8599;</a>
+  </nav>
+  <span class="rm-mode rm-mode--{{.RightmoveMode}}" title="Rightmove feed mode">Rightmove: {{.RightmoveMode}}</span>
+</header>
+<main class="admin-main">
+  {{with .Flash}}<div class="alert alert--ok" role="status">{{.}}</div>{{end}}
+  {{template "content" .}}
+</main>
+<script src="/static/js/site.js"></script>
+</body>
+</html>{{end}}

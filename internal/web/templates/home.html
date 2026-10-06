@@ -1,0 +1,49 @@
+{{define "content"}}
+<section class="hero" data-slider aria-roledescription="carousel" aria-label="Featured homes">
+  <div class="hero__track">
+    {{range $i, $img := .Settings.HeroImages}}<div class="hero__slide"><img src="{{$img}}" alt="" {{if $i}}loading="lazy"{{end}}></div>{{end}}
+  </div>
+  <div class="hero__content">
+    <div class="wrap">
+      <h1>{{.Settings.HeroHeading}}</h1>
+      <p>{{.Settings.HeroSubheading}}</p>
+      <div class="hero__actions">
+        <a class="btn" href="/properties">View properties for sale</a>
+        <a class="btn btn--ghost" href="?kind=valuation#contact" data-goto-kind="valuation">Book a valuation</a>
+      </div>
+    </div>
+  </div>
+  {{if gt (len .Settings.HeroImages) 1}}
+  <button class="hero__ctrl hero__ctrl--prev" type="button" aria-label="Previous photo" data-slider-prev>&#8249;</button>
+  <button class="hero__ctrl hero__ctrl--next" type="button" aria-label="Next photo" data-slider-next>&#8250;</button>
+  <div class="hero__dots" data-slider-dots></div>
+  {{end}}
+</section>
+
+<section class="section">
+  <div class="wrap intro">
+    <div>
+      <span class="eyebrow">About {{.Settings.AgencyName}}</span>
+      <h2>{{.Settings.IntroHeading}}</h2>
+    </div>
+    <div class="intro__text">
+      {{range paras .Settings.IntroText}}<p>{{.}}</p>{{end}}
+    </div>
+  </div>
+</section>
+
+<section class="section section--alt" id="properties">
+  <div class="wrap">
+    <div class="section__head">
+      <div>
+        <span class="eyebrow">Just listed</span>
+        <h2>New properties for sale</h2>
+      </div>
+      <a class="link-arrow" href="/properties">View all properties &rarr;</a>
+    </div>
+    <div class="grid-3">
+      {{range .Data.NewProperties}}{{template "card" .}}{{else}}<p>New properties are coming soon. Register your interest below.</p>{{end}}
+    </div>
+  </div>
+</section>
+{{end}}

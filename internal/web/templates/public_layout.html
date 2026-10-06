@@ -1,0 +1,26 @@
+{{define "layout"}}<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{if .Title}}{{.Title}} | {{end}}{{.Settings.AgencyName}}</title>
+<meta name="description" content="{{.Settings.AgencyName}} – {{.Settings.Tagline}}">
+<link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="/static/css/site.css">
+<style>:root{--brand:{{.Settings.PrimaryColor}};--accent:{{.Settings.AccentColor}}}</style>
+</head>
+<body>
+{{template "topbar" .}}
+<main>{{template "content" .}}</main>
+{{template "contact" .}}
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <span>&copy; {{.Year}} {{.Settings.AgencyName}}. All rights reserved.</span>
+    <span>Properties also listed on Rightmove.</span>
+  </div>
+</footer>
+<script src="/static/vendor/leaflet/leaflet.js"></script>
+<script src="/static/js/site.js"></script>
+</body>
+</html>{{end}}

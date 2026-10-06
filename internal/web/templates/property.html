@@ -1,0 +1,37 @@
+{{define "content"}}{{$p := .Data}}
+<section class="section detail-section">
+  <div class="wrap">
+    <a class="back" href="/properties">&larr; Back to properties</a>
+    <div class="detail">
+      <div class="gallery" data-gallery>
+        <div class="gallery__main">
+          {{with $p.MainPhoto}}<img src="{{.}}" alt="{{$p.Address}}" data-gallery-main>{{else}}<img src="/static/img/placeholder.svg" alt="" data-gallery-main>{{end}}
+          {{if ne $p.Status "available"}}<span class="badge">{{$p.Status.Label}}</span>{{end}}
+        </div>
+        {{if gt (len $p.Photos) 1}}<div class="gallery__thumbs">
+          {{range $i, $src := $p.Photos}}<button type="button" class="gallery__thumb{{if eq $i 0}} is-active{{end}}" data-gallery-thumb data-src="{{$src}}" aria-label="Show photo {{inc $i}}"><img src="{{$src}}" alt="" loading="lazy"></button>{{end}}
+        </div>{{end}}
+      </div>
+      <aside class="panel">
+        <div class="panel__price">{{if and $p.PriceQualifier (ne $p.PriceQualifier "POA")}}<small>{{$p.PriceQualifier}}</small>{{end}}{{$p.PriceText}}</div>
+        <h1 class="panel__address">{{$p.Address}}</h1>
+        <p class="muted">{{$p.PropertyType}} · {{$p.Postcode}}</p>
+        <div class="panel__rooms">{{template "rooms" $p}}</div>
+        <a class="btn btn--block" href="#contact">Arrange a viewing</a>
+        <a class="btn btn--brand btn--block" href="{{.Settings.PhoneHref}}">{{template "icon-phone"}} {{.Settings.Phone}}</a>
+      </aside>
+    </div>
+    <div class="detail__body">
+      <div>
+        <h2>About this property</h2>
+        <p class="lead">{{$p.Summary}}</p>
+        {{range paras $p.Description}}<p>{{.}}</p>{{end}}
+      </div>
+      {{if $p.Features}}<div class="features">
+        <h3>Key features</h3>
+        <ul>{{range $p.Features}}<li>{{.}}</li>{{end}}</ul>
+      </div>{{end}}
+    </div>
+  </div>
+</section>
+{{end}}

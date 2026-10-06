@@ -1,0 +1,7 @@
+/data/
+/bin/
+*.db
+.env
+*.pem
+*.key
+*.p12

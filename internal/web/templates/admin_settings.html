@@ -1,0 +1,50 @@
+{{define "content"}}{{$s := .Data.S}}{{$e := .Data.Errors}}
+<div class="page-title"><h1>Branding &amp; settings</h1></div>
+{{if $e}}<div class="alert alert--err" role="alert">Please fix the highlighted fields.</div>{{end}}
+<form class="card form" method="post" enctype="multipart/form-data" action="/admin/settings">
+  <input type="hidden" name="csrf" value="{{.CSRF}}">
+  <fieldset>
+    <legend>Brand</legend>
+    <div class="grid">
+      <label class="{{if $e.agency_name}}has-error{{end}}">Agency name *<input name="agency_name" value="{{$s.AgencyName}}" required>{{template "err" $e.agency_name}}</label>
+      <label>Tagline<input name="tagline" value="{{$s.Tagline}}"></label>
+      <label class="{{if $e.primary_color}}has-error{{end}}">Primary colour<input type="color" name="primary_color" value="{{$s.PrimaryColor}}">{{template "err" $e.primary_color}}</label>
+      <label class="{{if $e.accent_color}}has-error{{end}}">Accent colour<input type="color" name="accent_color" value="{{$s.AccentColor}}">{{template "err" $e.accent_color}}</label>
+    </div>
+    <div class="grid">
+      <label class="{{if $e.logo}}has-error{{end}}">Logo <small>(PNG/SVG-like images, shown in the header)</small><input type="file" name="logo_file" accept="image/png,image/jpeg,image/webp,image/gif">{{template "err" $e.logo}}</label>
+      {{if $s.LogoURL}}<div class="logo-preview"><img src="{{$s.LogoURL}}" alt="Current logo"><label class="check"><input type="checkbox" name="remove_logo"> Remove logo</label></div>{{end}}
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>Contact details</legend>
+    <div class="grid">
+      <label>Phone<input name="phone" value="{{$s.Phone}}"></label>
+      <label>Email<input name="email" type="email" value="{{$s.Email}}"></label>
+      <label>Office address<input name="office_address" value="{{$s.OfficeAddress}}"></label>
+      <label>Opening hours<input name="opening_hours" value="{{$s.OpeningHours}}"></label>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>Office map</legend>
+    <div class="grid">
+      <label class="{{if $e.office_lat}}has-error{{end}}">Latitude<input name="office_lat" value="{{$s.OfficeLat}}">{{template "err" $e.office_lat}}</label>
+      <label class="{{if $e.office_lng}}has-error{{end}}">Longitude<input name="office_lng" value="{{$s.OfficeLng}}">{{template "err" $e.office_lng}}</label>
+      <label class="{{if $e.map_zoom}}has-error{{end}}">Zoom (1–19)<input name="map_zoom" type="number" min="1" max="19" value="{{$s.MapZoom}}">{{template "err" $e.map_zoom}}</label>
+    </div>
+    <p class="muted small">Tip: right-click your office on openstreetmap.org and choose "Show address" to copy the coordinates.</p>
+  </fieldset>
+  <fieldset>
+    <legend>Home page</legend>
+    <label>Hero heading<input name="hero_heading" value="{{$s.HeroHeading}}"></label>
+    <label>Hero sub-heading<input name="hero_subheading" value="{{$s.HeroSubheading}}"></label>
+    {{if $s.HeroImages}}<div class="photo-strip">{{range $s.HeroImages}}<figure><img src="{{.}}" alt=""></figure>{{end}}</div>{{end}}
+    <label class="{{if $e.hero_images}}has-error{{end}}">Scrolling hero photos <small>(one URL per line)</small><textarea name="hero_images" rows="5">{{.Data.HeroText}}</textarea>{{template "err" $e.hero_images}}</label>
+    <label>Upload hero photos<input type="file" name="hero_files" accept="image/jpeg,image/png,image/webp" multiple></label>
+    <label>Intro heading<input name="intro_heading" value="{{$s.IntroHeading}}"></label>
+    <label>Intro text <small>(blank line between paragraphs)</small><textarea name="intro_text" rows="7">{{$s.IntroText}}</textarea></label>
+  </fieldset>
+  <div class="actions"><button class="btn" type="submit">Save settings</button></div>
+</form>
+{{end}}
+{{define "err"}}{{with .}}<span class="error">{{.}}</span>{{end}}{{end}}

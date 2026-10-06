@@ -1,0 +1,23 @@
+{{define "content"}}
+<div class="page-title"><h1>Enquiries</h1></div>
+<div class="enquiries">
+{{range .Data}}
+  <article class="card enquiry">
+    <header>
+      <span class="pill{{if eq .Kind "valuation"}} pill--accent{{end}}">{{.Kind.Label}}</span>
+      <strong>{{.Name}}</strong>
+      <time>{{date .CreatedAt}}</time>
+    </header>
+    <dl>
+      <dt>Phone</dt><dd><a href="tel:{{.Phone}}">{{.Phone}}</a></dd>
+      <dt>Email</dt><dd><a href="mailto:{{.Email}}">{{.Email}}</a></dd>
+      {{with .Address}}<dt>Address</dt><dd>{{.}}</dd>{{end}}
+      {{with .PropertyID}}<dt>Property</dt><dd><a href="/admin/properties/{{.}}">View property</a></dd>{{end}}
+    </dl>
+    {{with .Message}}<p class="message">{{.}}</p>{{end}}
+  </article>
+{{else}}
+  <p>No enquiries yet. Valuation requests and contact form messages from the website appear here.</p>
+{{end}}
+</div>
+{{end}}

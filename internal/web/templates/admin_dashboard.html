@@ -1,0 +1,48 @@
+{{define "content"}}{{$d := .Data}}
+<div class="page-title">
+  <h1>Properties</h1>
+  <a class="btn" href="/admin/properties/new">+ Add property</a>
+</div>
+<div class="stats">
+  <div class="stat"><strong>{{len $d.Properties}}</strong><span>Total properties</span></div>
+  <div class="stat"><strong>{{$d.LiveCount}}</strong><span>Live on website</span></div>
+  <div class="stat"><strong>{{$d.EnquiryCount}}</strong><span>Enquiries received</span></div>
+</div>
+<div class="card">
+<table class="table">
+  <thead><tr><th></th><th>Ref</th><th>Address</th><th>Price</th><th>Status</th><th>Website</th><th>Rightmove</th><th></th></tr></thead>
+  <tbody>
+  {{range $d.Properties}}
+    <tr>
+      <td>{{with .MainPhoto}}<img class="thumb" src="{{.}}" alt="">{{end}}</td>
+      <td>{{.AgentRef}}</td>
+      <td><a href="/admin/properties/{{.ID}}">{{.FullAddress}}</a></td>
+      <td>{{.PriceText}}</td>
+      <td>{{.Status.Label}}</td>
+      <td>{{if .Live}}<span class="pill pill--ok">Live</span>{{else}}<span class="pill">Hidden</span>{{end}}</td>
+      <td>{{template "rm-status" .}}</td>
+      <td><a href="/admin/properties/{{.ID}}">Edit</a></td>
+    </tr>
+  {{else}}
+    <tr><td colspan="8">No properties yet. <a href="/admin/properties/new">Add your first property</a>.</td></tr>
+  {{end}}
+  </tbody>
+</table>
+</div>
+
+<div class="page-title"><h2>Latest enquiries</h2><a href="/admin/enquiries">View all &rarr;</a></div>
+<div class="card">
+<table class="table">
+  <thead><tr><th>Received</th><th>Type</th><th>Name</th><th>Phone</th><th>Email</th></tr></thead>
+  <tbody>
+  {{range $d.Enquiries}}
+    <tr><td>{{date .CreatedAt}}</td><td><span class="pill{{if eq .Kind "valuation"}} pill--accent{{end}}">{{.Kind.Label}}</span></td><td>{{.Name}}</td><td><a href="tel:{{.Phone}}">{{.Phone}}</a></td><td><a href="mailto:{{.Email}}">{{.Email}}</a></td></tr>
+  {{else}}
+    <tr><td colspan="5">No enquiries yet.</td></tr>
+  {{end}}
+  </tbody>
+</table>
+</div>
+{{end}}
+
+{{define "rm-status"}}{{if .Rightmove.LastError}}<span class="pill pill--err" title="{{.Rightmove.LastError}}">Error</span>{{else if .Rightmove.Listed}}<span class="pill pill--ok">Listed</span>{{else if and .Rightmove.DryRun (not .Rightmove.LastSyncAt.IsZero)}}<span class="pill" title="Payload logged, not sent">Dry run OK</span>{{else}}<span class="pill">Not sent</span>{{end}}{{end}}
