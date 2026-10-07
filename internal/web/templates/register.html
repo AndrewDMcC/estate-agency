@@ -1,0 +1,138 @@
+{{define "content"}}{{$d := .Data}}{{$f := $d.Form}}{{$e := $f.Errors}}
+<section class="page-head">
+  <div class="wrap">
+    <span class="eyebrow">Buyers' register</span>
+    <h1>Register with us</h1>
+    <p class="lead muted">Tell us about yourself and the home you're looking for, and we'll let you know as soon as a matching property comes to the market.</p>
+  </div>
+</section>
+<section class="section section--tight">
+  <div class="wrap register">
+    {{if .Sent}}<div class="alert alert--ok" role="status">Thank you for registering. We'll be in touch when we have properties that match what you're looking for.</div>{{end}}
+    {{if $e}}<div class="alert alert--err" role="alert">Please check the highlighted fields and try again.</div>{{end}}
+    <form class="form-page" method="post" action="/register">
+      <input type="hidden" name="captcha_id" value="{{.CaptchaID}}">
+      <div class="hp" aria-hidden="true"><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label></div>
+
+      <fieldset class="group">
+        <legend>Your details</legend>
+        <div class="form-grid form-grid--name">
+          <div class="field{{if $e.title}} has-error{{end}}">
+            <label for="r-title">Title <span class="req">*</span></label>
+            <select id="r-title" name="title" required autocomplete="honorific-prefix">
+              <option value="">Select</option>
+              {{range $d.Titles}}<option{{if eq . $f.Title}} selected{{end}}>{{.}}</option>{{end}}
+            </select>
+            {{template "field-error" $e.title}}
+          </div>
+          <div class="field{{if $e.forename}} has-error{{end}}">
+            <label for="r-forename">Forename <span class="req">*</span></label>
+            <input id="r-forename" name="forename" value="{{$f.Forename}}" autocomplete="given-name" required maxlength="60">
+            {{template "field-error" $e.forename}}
+          </div>
+          <div class="field{{if $e.surname}} has-error{{end}}">
+            <label for="r-surname">Surname <span class="req">*</span></label>
+            <input id="r-surname" name="surname" value="{{$f.Surname}}" autocomplete="family-name" required maxlength="60">
+            {{template "field-error" $e.surname}}
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field{{if $e.email}} has-error{{end}}">
+            <label for="r-email">Email <span class="req">*</span></label>
+            <input id="r-email" name="email" type="email" value="{{$f.Email}}" autocomplete="email" required>
+            {{template "field-error" $e.email}}
+          </div>
+          <div class="field{{if $e.phone}} has-error{{end}}">
+            <label for="r-phone">Phone <span class="req">*</span></label>
+            <input id="r-phone" name="phone" type="tel" value="{{$f.Phone}}" autocomplete="tel" required>
+            {{template "field-error" $e.phone}}
+          </div>
+          <div class="field{{if $e.address}} has-error{{end}}">
+            <label for="r-address">Current address</label>
+            <input id="r-address" name="address" value="{{$f.Address}}" autocomplete="street-address" maxlength="300">
+            {{template "field-error" $e.address}}
+          </div>
+          <div class="field{{if $e.postcode}} has-error{{end}}">
+            <label for="r-postcode">Postcode</label>
+            <input id="r-postcode" name="postcode" value="{{$f.Postcode}}" autocomplete="postal-code" maxlength="10">
+            {{template "field-error" $e.postcode}}
+          </div>
+          <div class="field field--full{{if $e.position}} has-error{{end}}">
+            <label for="r-position">Your buying position <span class="req">*</span></label>
+            <select id="r-position" name="position" required>
+              <option value="">Select</option>
+              {{range $d.Positions}}<option{{if eq . $f.Position}} selected{{end}}>{{.}}</option>{{end}}
+            </select>
+            {{template "field-error" $e.position}}
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>What you're looking for</legend>
+        <div class="form-grid form-grid--3">
+          <div class="field{{if $e.price}} has-error{{end}}">
+            <label for="r-min-price">Minimum price</label>
+            <select id="r-min-price" name="min_price">
+              <option value="0">No minimum</option>
+              {{range $d.PriceOptions}}<option value="{{.}}"{{if eq . $f.MinPrice}} selected{{end}}>{{price .}}</option>{{end}}
+            </select>
+          </div>
+          <div class="field{{if $e.price}} has-error{{end}}">
+            <label for="r-max-price">Maximum price</label>
+            <select id="r-max-price" name="max_price">
+              <option value="0">No maximum</option>
+              {{range $d.PriceOptions}}<option value="{{.}}"{{if eq . $f.MaxPrice}} selected{{end}}>{{price .}}</option>{{end}}
+            </select>
+          </div>
+          <div class="field{{if $e.bedrooms}} has-error{{end}}">
+            <label for="r-beds">Bedrooms</label>
+            <select id="r-beds" name="min_bedrooms">
+              <option value="0">Any</option>
+              {{range $d.BedOptions}}<option value="{{.}}"{{if eq . $f.MinBedrooms}} selected{{end}}>{{.}}+</option>{{end}}
+            </select>
+            {{template "field-error" $e.bedrooms}}
+          </div>
+        </div>
+        {{template "field-error" $e.price}}
+        {{range $d.Groups}}{{$g := .}}
+        <div class="choice-group" role="group" aria-labelledby="g-{{.Name}}">
+          <span class="choice-group__label" id="g-{{.Name}}">{{.Label}} <small>(tick any that apply)</small></span>
+          <div class="checks">
+            {{range .Options}}<label><input type="checkbox" name="{{$g.Name}}" value="{{.}}"{{if has $g.Selected .}} checked{{end}}> <span>{{.}}</span></label>{{end}}
+          </div>
+        </div>
+        {{end}}
+        <div class="field field--spaced{{if $e.notes}} has-error{{end}}">
+          <label for="r-notes">Anything else we should know?</label>
+          <textarea id="r-notes" name="notes" rows="4" maxlength="2000" placeholder="For example: school catchment, timescales, or a particular street">{{$f.Notes}}</textarea>
+          {{template "field-error" $e.notes}}
+        </div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>Confirm and register</legend>
+        <div class="field{{if $e.consent}} has-error{{end}}">
+          <label class="consent"><input type="checkbox" name="consent" value="1"{{if $f.Consent}} checked{{end}} required> <span>I'm happy for {{.Settings.AgencyName}} to contact me by phone or email about properties that match my preferences. <span class="req">*</span></span></label>
+          {{template "field-error" $e.consent}}
+        </div>
+        <div class="field field--spaced{{if $e.captcha}} has-error{{end}}">
+          <label for="r-captcha">Enter the numbers shown <span class="req">*</span></label>
+          <div class="captcha">
+            <img src="/captcha/{{.CaptchaID}}.png" alt="Security code" width="240" height="80" data-captcha-img>
+            <div class="captcha__input">
+              <input id="r-captcha" name="captcha" inputmode="numeric" autocomplete="off" required maxlength="8">
+              <button type="button" class="link-btn" data-captcha-reload>Show a different code</button>
+            </div>
+          </div>
+          {{template "field-error" $e.captcha}}
+        </div>
+        <div class="form__submit form__submit--page">
+          <button class="btn" type="submit">Register</button>
+          <small class="muted">You can ask us to remove your details at any time.</small>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+</section>
+{{end}}

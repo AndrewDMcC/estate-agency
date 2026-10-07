@@ -34,7 +34,7 @@ func Open(path string) (*Store, error) {
 		return nil, fmt.Errorf("open bolt db: %w", err)
 	}
 	err = db.Update(func(tx *bolt.Tx) error {
-		for _, name := range [][]byte{bucketProperties, bucketEnquiries, bucketSettings, bucketSecrets} {
+		for _, name := range [][]byte{bucketProperties, bucketEnquiries, bucketSettings, bucketSecrets, bucketRegistrations} {
 			if _, err := tx.CreateBucketIfNotExists(name); err != nil {
 				return err
 			}

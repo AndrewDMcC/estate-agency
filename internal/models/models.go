@@ -228,3 +228,75 @@ func DefaultSettings() Settings {
 			"floor plans and regular, straightforward updates.",
 	}
 }
+
+var Titles = []string{"Mr", "Mrs", "Miss", "Ms", "Mx", "Dr", "Other"}
+
+var BuyerPositions = []string{
+	"First-time buyer",
+	"Property to sell (not yet on the market)",
+	"Property on the market",
+	"Property under offer",
+	"Cash buyer",
+	"Mortgage agreed in principle",
+	"Investor",
+}
+
+var MustHaves = []string{"Garden", "Off-road parking", "Garage", "Home office", "Ground-floor bedroom", "Annexe"}
+
+// RegisterOptions are the admin-managed choices offered on the buyers' Register page.
+type RegisterOptions struct {
+	PropertyTypes []string `json:"property_types"`
+	Styles        []string `json:"styles"`
+	Ages          []string `json:"ages"`
+	Towns         []string `json:"towns"`
+}
+
+func DefaultRegisterOptions() RegisterOptions {
+	return RegisterOptions{
+		PropertyTypes: []string{"Detached", "Semi-detached", "Terraced", "End of terrace", "Bungalow", "Cottage", "Town house", "Flat / apartment", "Land / building plot"},
+		Styles:        []string{"Modern", "Contemporary", "Traditional", "Period", "Character", "Barn conversion", "New build"},
+		Ages:          []string{"New build", "2000s onwards", "1960s – 1990s", "1920s – 1950s", "Victorian / Edwardian", "Georgian or older"},
+		Towns: []string{"Farnsfield", "Southwell", "Bilsthorpe", "Edingley", "Halam", "Kirklington", "Oxton", "Calverton",
+			"Rainworth", "Blidworth", "Ollerton", "Edwinstowe", "Mansfield", "Newark"},
+	}
+}
+
+type Registration struct {
+	ID            string    `json:"id"`
+	Title         string    `json:"title"`
+	Forename      string    `json:"forename"`
+	Surname       string    `json:"surname"`
+	Email         string    `json:"email"`
+	Phone         string    `json:"phone"`
+	Address       string    `json:"address"`
+	Postcode      string    `json:"postcode"`
+	Position      string    `json:"position"`
+	MinPrice      int       `json:"min_price"`
+	MaxPrice      int       `json:"max_price"`
+	MinBedrooms   int       `json:"min_bedrooms"`
+	PropertyTypes []string  `json:"property_types"`
+	Styles        []string  `json:"styles"`
+	Ages          []string  `json:"ages"`
+	Towns         []string  `json:"towns"`
+	MustHaves     []string  `json:"must_haves"`
+	Notes         string    `json:"notes"`
+	Consent       bool      `json:"consent"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+func (r *Registration) FullName() string {
+	return strings.Join(strings.Fields(r.Title+" "+r.Forename+" "+r.Surname), " ")
+}
+
+func (r *Registration) BudgetText() string {
+	switch {
+	case r.MinPrice > 0 && r.MaxPrice > 0:
+		return FormatPrice(r.MinPrice) + " – " + FormatPrice(r.MaxPrice)
+	case r.MaxPrice > 0:
+		return "Up to " + FormatPrice(r.MaxPrice)
+	case r.MinPrice > 0:
+		return "From " + FormatPrice(r.MinPrice)
+	default:
+		return "Any"
+	}
+}

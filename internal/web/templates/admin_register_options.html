@@ -1,0 +1,14 @@
+{{define "content"}}
+<div class="page-title"><h1>Register options</h1><a href="/register" target="_blank" rel="noopener">View Register page &#8599;</a></div>
+<p class="muted">These are the choices buyers can tick on the Register page. Put one option per line: add a line to add an option, edit a line to rename it, move lines to change the order, and delete a line to remove it. Existing registrations keep the choices already made.</p>
+{{if .Data.HasErrors}}<div class="alert alert--err" role="alert">Please fix the highlighted lists.</div>{{end}}
+<form class="card form" method="post" action="/admin/register-options">
+  <input type="hidden" name="csrf" value="{{.CSRF}}">
+  <div class="options-grid">
+  {{range .Data.Lists}}
+    <label class="{{if .Error}}has-error{{end}}">{{.Label}} <small>One per line · {{.Help}}</small><textarea name="{{.Key}}" rows="12">{{.Text}}</textarea>{{with .Error}}<span class="error">{{.}}</span>{{end}}</label>
+  {{end}}
+  </div>
+  <div class="actions"><button class="btn" type="submit">Save options</button></div>
+</form>
+{{end}}

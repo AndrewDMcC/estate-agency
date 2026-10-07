@@ -62,6 +62,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /properties", s.handleProperties)
 	mux.HandleFunc("GET /properties/{id}", s.handleProperty)
 	mux.HandleFunc("POST /enquiry", s.handleEnquiry)
+	mux.HandleFunc("GET /register", s.handleRegister)
+	mux.HandleFunc("POST /register", s.handleRegisterSubmit)
 
 	admin := s.adminRoutes()
 	mux.Handle("/admin", admin)
@@ -72,15 +74,16 @@ func (s *Server) Handler() http.Handler {
 }
 
 type pageData struct {
-	Settings   models.Settings
-	Title      string
-	Hero       bool
-	Form       enquiryForm
-	CaptchaID  string
-	Sent       bool
-	MapMarkers string
-	Year       int
-	Data       any
+	Settings    models.Settings
+	Title       string
+	Hero        bool
+	HideContact bool
+	Form        enquiryForm
+	CaptchaID   string
+	Sent        bool
+	MapMarkers  string
+	Year        int
+	Data        any
 }
 
 type enquiryForm struct {
@@ -101,20 +104,10 @@ func (f *enquiryForm) validate() map[string]string {
 	} else if len(f.Name) > 120 {
 		errs["name"] = "Name is too long."
 	}
-	if addr, err := mail.ParseAddress(f.Email); err != nil || addr.Address != f.Email || len(f.Email) > 254 {
+	if !validEmail(f.Email) {
 		errs["email"] = "Please enter a valid email address."
 	}
-	digits := 0
-	for _, c := range f.Phone {
-		switch {
-		case c >= '0' && c <= '9':
-			digits++
-		case strings.ContainsRune(" +()-", c):
-		default:
-			digits = -100
-		}
-	}
-	if digits < 10 || digits > 13 {
+	if !validPhone(f.Phone) {
 		errs["phone"] = "Please enter a valid phone number."
 	}
 	if f.Kind == string(models.EnquiryValuation) && f.Address == "" {
@@ -126,6 +119,25 @@ func (f *enquiryForm) validate() map[string]string {
 		errs["message"] = "Message is too long."
 	}
 	return errs
+}
+
+func validEmail(email string) bool {
+	addr, err := mail.ParseAddress(email)
+	return err == nil && addr.Address == email && len(email) <= 254
+}
+
+func validPhone(phone string) bool {
+	digits := 0
+	for _, c := range phone {
+		switch {
+		case c >= '0' && c <= '9':
+			digits++
+		case strings.ContainsRune(" +()-", c):
+		default:
+			return false
+		}
+	}
+	return digits >= 10 && digits <= 13
 }
 
 type homeData struct {

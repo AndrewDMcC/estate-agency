@@ -3,6 +3,7 @@ package web
 import (
 	"embed"
 	"html/template"
+	"slices"
 	"strings"
 	"time"
 
@@ -13,14 +14,17 @@ import (
 var assets embed.FS
 
 var pageLayouts = map[string]string{
-	"home":                "public",
-	"properties":          "public",
-	"property":            "public",
-	"notfound":            "public",
-	"admin_dashboard":     "admin",
-	"admin_property_form": "admin",
-	"admin_enquiries":     "admin",
-	"admin_settings":      "admin",
+	"home":                   "public",
+	"properties":             "public",
+	"property":               "public",
+	"notfound":               "public",
+	"register":               "public",
+	"admin_registrations":    "admin",
+	"admin_register_options": "admin",
+	"admin_dashboard":        "admin",
+	"admin_property_form":    "admin",
+	"admin_enquiries":        "admin",
+	"admin_settings":         "admin",
 }
 
 var templateFuncs = template.FuncMap{
@@ -41,7 +45,9 @@ var templateFuncs = template.FuncMap{
 		}
 		return t.Local().Format("2 Jan 2006 15:04")
 	},
-	"inc": func(i int) int { return i + 1 },
+	"inc":  func(i int) int { return i + 1 },
+	"join": func(items []string) string { return strings.Join(items, ", ") },
+	"has":  func(items []string, v string) bool { return slices.Contains(items, v) },
 }
 
 func parseTemplates() (map[string]*template.Template, error) {

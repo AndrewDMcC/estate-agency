@@ -1,0 +1,30 @@
+{{define "content"}}
+<div class="page-title"><h1>Registered buyers</h1><a href="/admin/register-options">Edit register options &rarr;</a></div>
+<div class="enquiries">
+{{range .Data}}
+  <article class="card enquiry">
+    <header>
+      <span class="pill pill--accent">Buyer</span>
+      <strong>{{.FullName}}</strong>
+      <time>{{date .CreatedAt}}</time>
+    </header>
+    <dl>
+      <dt>Phone</dt><dd><a href="tel:{{.Phone}}">{{.Phone}}</a></dd>
+      <dt>Email</dt><dd><a href="mailto:{{.Email}}">{{.Email}}</a></dd>
+      {{if or .Address .Postcode}}<dt>Address</dt><dd>{{.Address}}{{if and .Address .Postcode}}, {{end}}{{.Postcode}}</dd>{{end}}
+      <dt>Position</dt><dd>{{.Position}}</dd>
+      <dt>Budget</dt><dd>{{.BudgetText}}</dd>
+      <dt>Bedrooms</dt><dd>{{if .MinBedrooms}}{{.MinBedrooms}}+{{else}}Any{{end}}</dd>
+      {{with .PropertyTypes}}<dt>Types</dt><dd>{{join .}}</dd>{{end}}
+      {{with .Styles}}<dt>Styles</dt><dd>{{join .}}</dd>{{end}}
+      {{with .Ages}}<dt>Age</dt><dd>{{join .}}</dd>{{end}}
+      {{with .Towns}}<dt>Areas</dt><dd>{{join .}}</dd>{{end}}
+      {{with .MustHaves}}<dt>Must-haves</dt><dd>{{join .}}</dd>{{end}}
+    </dl>
+    {{with .Notes}}<p class="message">{{.}}</p>{{end}}
+  </article>
+{{else}}
+  <p>No buyers have registered yet. Registrations from the website's Register page appear here.</p>
+{{end}}
+</div>
+{{end}}

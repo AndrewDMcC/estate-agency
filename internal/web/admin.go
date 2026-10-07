@@ -30,6 +30,7 @@ var flashMessages = map[string]string{
 	"deleted":  "Property deleted.",
 	"synced":   "Rightmove sync finished. See the status panel for the result.",
 	"settings": "Settings saved.",
+	"options":  "Register options saved.",
 }
 
 type adminData struct {
@@ -43,10 +44,11 @@ type adminData struct {
 }
 
 type dashboardData struct {
-	Properties   []*models.Property
-	Enquiries    []*models.Enquiry
-	EnquiryCount int
-	LiveCount    int
+	Properties        []*models.Property
+	Enquiries         []*models.Enquiry
+	EnquiryCount      int
+	RegistrationCount int
+	LiveCount         int
 }
 
 type propertyForm struct {
@@ -78,6 +80,9 @@ func (s *Server) adminRoutes() http.Handler {
 	m.HandleFunc("POST /admin/properties/{id}/delete", s.adminDeleteProperty)
 	m.HandleFunc("POST /admin/properties/{id}/rightmove", s.adminSyncProperty)
 	m.HandleFunc("GET /admin/enquiries", s.adminEnquiries)
+	m.HandleFunc("GET /admin/registrations", s.adminRegistrations)
+	m.HandleFunc("GET /admin/register-options", s.adminRegisterOptions)
+	m.HandleFunc("POST /admin/register-options", s.adminSaveRegisterOptions)
 	m.HandleFunc("GET /admin/settings", s.adminSettings)
 	m.HandleFunc("POST /admin/settings", s.adminSaveSettings)
 	return s.requireAdmin(m)
@@ -138,6 +143,7 @@ func (s *Server) adminDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	count, _ := s.store.CountEnquiries()
+	regCount, _ := s.store.CountRegistrations()
 	live := 0
 	for _, p := range props {
 		if p.Live() {
@@ -145,7 +151,7 @@ func (s *Server) adminDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.renderAdmin(w, r, "admin_dashboard", "dashboard", "Dashboard",
-		dashboardData{Properties: props, Enquiries: enqs, EnquiryCount: count, LiveCount: live}, http.StatusOK)
+		dashboardData{Properties: props, Enquiries: enqs, EnquiryCount: count, RegistrationCount: regCount, LiveCount: live}, http.StatusOK)
 }
 
 func newPropertyForm(p *models.Property, isNew bool, errs map[string]string) propertyForm {

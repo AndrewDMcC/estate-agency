@@ -13,7 +13,7 @@
 <body>
 {{template "topbar" .}}
 <main>{{template "content" .}}</main>
-{{template "contact" .}}
+{{if not .HideContact}}{{template "contact" .}}{{end}}
 <footer class="site-footer">
   <div class="wrap site-footer__inner">
     <span>&copy; {{.Year}} {{.Settings.AgencyName}}. All rights reserved.</span>

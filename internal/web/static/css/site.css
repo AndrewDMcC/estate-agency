@@ -174,3 +174,34 @@ a.topbar__item:hover{text-decoration:underline}
   .topbar__contact-inner .topbar__item:nth-child(3){display:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* Register page */
+.section--tight{padding:44px 0 84px}
+.register{max-width:980px}
+.form-page{background:#fff;border-radius:var(--radius);box-shadow:0 6px 24px rgba(16,30,54,.1);border-top:5px solid var(--accent);padding:8px 32px 30px}
+.group{border:0;border-bottom:1px solid var(--line);margin:0;padding:26px 0;min-width:0}
+.group:last-child{border-bottom:0;padding-bottom:0}
+.group legend{font-family:var(--serif);font-size:1.4rem;font-weight:600;color:var(--brand);padding:0;margin-bottom:14px;float:left;width:100%}
+.group legend + *{clear:both}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;margin-bottom:14px}
+.form-grid--name{grid-template-columns:140px 1fr 1fr}
+.form-grid--3{grid-template-columns:repeat(3,1fr)}
+.field select{width:100%;padding:.7em .85em;border:1px solid #cfd5dd;border-radius:8px;font:inherit;background:#fff}
+.field select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.has-error select{border-color:#c0392b}
+.field--spaced{margin-top:20px}
+.choice-group{margin-top:22px}
+.choice-group__label{display:block;font-weight:600;font-size:.95rem;margin-bottom:10px}
+.choice-group__label small{font-weight:400;color:var(--muted)}
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px 16px}
+.checks label,.consent{display:flex;gap:10px;align-items:flex-start;font-weight:400;cursor:pointer;line-height:1.4}
+.checks label{padding:9px 12px;border:1px solid var(--line);border-radius:8px;transition:border-color .2s,background .2s}
+.checks label:hover{border-color:var(--accent)}
+.checks label:has(input:checked){border-color:var(--brand);background:#f1f4f8}
+.field .consent{font-weight:400;font-size:1rem}
+.checks input,.field .consent input{width:18px;height:18px;margin:.1em 0 0;padding:0;accent-color:var(--brand);flex:none}
+.form__submit--page{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:22px}
+@media (max-width:640px){
+  .form-grid,.form-grid--name,.form-grid--3{grid-template-columns:1fr}
+  .form-page{padding:4px 18px 22px}
+}
