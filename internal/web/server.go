@@ -20,21 +20,21 @@ import (
 
 	"github.com/AndrewDMcC/estate-agency/internal/config"
 	"github.com/AndrewDMcC/estate-agency/internal/models"
-	"github.com/AndrewDMcC/estate-agency/internal/rightmove"
 	"github.com/AndrewDMcC/estate-agency/internal/store"
 )
 
 type Server struct {
 	store     *store.Store
 	cfg       config.Config
-	rm        *rightmove.Client
+	rm        rightmoveClient
+	wake      chan struct{}
 	log       *slog.Logger
 	tmpl      map[string]*template.Template
 	uploadDir string
 	csrf      string
 }
 
-func New(st *store.Store, cfg config.Config, rm *rightmove.Client, log *slog.Logger) (*Server, error) {
+func New(st *store.Store, cfg config.Config, rm rightmoveClient, log *slog.Logger) (*Server, error) {
 	tmpl, err := parseTemplates()
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func New(st *store.Store, cfg config.Config, rm *rightmove.Client, log *slog.Log
 	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
 		return nil, err
 	}
-	return &Server{store: st, cfg: cfg, rm: rm, log: log, tmpl: tmpl, uploadDir: uploadDir, csrf: secret}, nil
+	return &Server{store: st, cfg: cfg, rm: rm, log: log, tmpl: tmpl, uploadDir: uploadDir, csrf: secret, wake: make(chan struct{}, 1)}, nil
 }
 
 func (s *Server) Handler() http.Handler {

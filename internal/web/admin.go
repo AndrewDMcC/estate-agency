@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/hex"
@@ -15,7 +14,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/AndrewDMcC/estate-agency/internal/models"
 	"github.com/AndrewDMcC/estate-agency/internal/rightmove"
@@ -28,7 +26,7 @@ var flashMessages = map[string]string{
 	"created":  "Property created.",
 	"saved":    "Property saved.",
 	"deleted":  "Property deleted.",
-	"synced":   "Rightmove sync finished. See the status panel for the result.",
+	"synced":   "Queued for Rightmove. The status below updates within a few seconds.",
 	"settings": "Settings saved.",
 	"options":  "Register options saved.",
 }
@@ -181,7 +179,7 @@ func (s *Server) adminCreateProperty(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, err)
 		return
 	}
-	s.syncRightmove(r.Context(), p)
+	s.queueRightmove(p)
 	http.Redirect(w, r, "/admin/properties/"+p.ID+"?msg=created", http.StatusSeeOther)
 }
 
@@ -219,7 +217,7 @@ func (s *Server) adminUpdateProperty(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, err)
 		return
 	}
-	s.syncRightmove(r.Context(), p)
+	s.queueRightmove(p)
 	http.Redirect(w, r, "/admin/properties/"+p.ID+"?msg=saved", http.StatusSeeOther)
 }
 
@@ -228,16 +226,12 @@ func (s *Server) adminDeleteProperty(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if p.Rightmove.Listed {
-		ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
-		defer cancel()
-		if err := s.rm.RemoveProperty(ctx, p.AgentRef()); err != nil {
-			s.log.Warn("rightmove remove failed", "id", p.ID, "err", err)
-		}
-	}
 	if err := s.store.DeleteProperty(p.ID); err != nil {
 		s.serverError(w, err)
 		return
+	}
+	if ref := listedRef(p); ref != "" {
+		s.enqueueRightmove(p.ID, ref)
 	}
 	http.Redirect(w, r, "/admin?msg=deleted", http.StatusSeeOther)
 }
@@ -247,39 +241,8 @@ func (s *Server) adminSyncProperty(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	s.syncRightmove(r.Context(), p)
+	s.queueRightmove(p)
 	http.Redirect(w, r, "/admin/properties/"+p.ID+"?msg=synced", http.StatusSeeOther)
-}
-
-// syncRightmove pushes live listings to Rightmove and removes ones that are no longer live.
-func (s *Server) syncRightmove(ctx context.Context, p *models.Property) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-	var err error
-	switch {
-	case p.Live():
-		if problems := rightmove.Validate(p); len(problems) > 0 {
-			err = fmt.Errorf("not sent: %s", strings.Join(problems, "; "))
-		} else if err = s.rm.SendProperty(ctx, p, s.cfg.BaseURL); err == nil {
-			p.Rightmove.Listed = !s.rm.DryRun()
-		}
-	case p.Rightmove.Listed:
-		if err = s.rm.RemoveProperty(ctx, p.AgentRef()); err == nil {
-			p.Rightmove.Listed = false
-		}
-	default:
-		return
-	}
-	p.Rightmove.LastSyncAt = time.Now().UTC()
-	p.Rightmove.DryRun = s.rm.DryRun()
-	p.Rightmove.LastError = ""
-	if err != nil {
-		p.Rightmove.LastError = err.Error()
-		s.log.Warn("rightmove sync", "id", p.ID, "err", err)
-	}
-	if err := s.store.SaveProperty(p); err != nil {
-		s.log.Error("save rightmove status", "id", p.ID, "err", err)
-	}
 }
 
 func (s *Server) adminEnquiries(w http.ResponseWriter, r *http.Request) {

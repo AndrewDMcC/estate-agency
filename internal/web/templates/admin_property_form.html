@@ -57,12 +57,13 @@
     <p>Status: {{template "rm-status" $p}}</p>
     <p>Last sync: {{date $p.Rightmove.LastSyncAt}}</p>
     {{with $p.Rightmove.LastError}}<p class="error">{{.}}</p>{{end}}
+    {{if and $p.Rightmove.Pending (not $p.Rightmove.NextAttemptAt.IsZero)}}<p>Retry {{$p.Rightmove.Attempts}} failed. Next attempt: {{date $p.Rightmove.NextAttemptAt}}</p>{{end}}
     {{if $f.RightmoveProblems}}<p><strong>Needed before sending:</strong></p><ul class="problems">{{range $f.RightmoveProblems}}<li>{{.}}</li>{{end}}</ul>{{end}}
     <form method="post" action="/admin/properties/{{$p.ID}}/rightmove">
       <input type="hidden" name="csrf" value="{{.CSRF}}">
-      <button class="btn btn--brand" type="submit">Sync to Rightmove now</button>
+      <button class="btn btn--brand" type="submit">Send to Rightmove now</button>
     </form>
-    <p class="muted small">Saving a property syncs it automatically. Sold or unpublished properties are removed from Rightmove.</p>
+    <p class="muted small">Saving a property sends it to Rightmove automatically within a few seconds. Sold, unpublished or deleted properties are removed. Failed updates are retried automatically.</p>
   </div>
   <div class="card danger">
     <h3>Delete property</h3>
@@ -77,4 +78,4 @@
 {{end}}
 
 {{define "err"}}{{with .}}<span class="error">{{.}}</span>{{end}}{{end}}
-{{define "rm-status"}}{{if .Rightmove.LastError}}<span class="pill pill--err">Error</span>{{else if .Rightmove.Listed}}<span class="pill pill--ok">Listed</span>{{else if and .Rightmove.DryRun (not .Rightmove.LastSyncAt.IsZero)}}<span class="pill" title="Payload logged, not sent">Dry run OK</span>{{else}}<span class="pill">Not sent</span>{{end}}{{end}}
+{{define "rm-status"}}{{if .Rightmove.Pending}}{{if .Rightmove.LastError}}<span class="pill pill--err" title="{{.Rightmove.LastError}}">Retrying</span>{{else}}<span class="pill pill--accent" title="Waiting to be sent">Queued</span>{{end}}{{else if .Rightmove.LastError}}<span class="pill pill--err">Error</span>{{else if .Rightmove.Listed}}<span class="pill pill--ok">Listed</span>{{else if and .Rightmove.DryRun (not .Rightmove.LastSyncAt.IsZero)}}<span class="pill" title="Payload logged, not sent">Dry run OK</span>{{else}}<span class="pill">Not sent</span>{{end}}{{end}}

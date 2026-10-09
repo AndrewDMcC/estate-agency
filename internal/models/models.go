@@ -82,6 +82,11 @@ type RightmoveSync struct {
 	LastSyncAt time.Time `json:"last_sync_at"`
 	LastError  string    `json:"last_error"`
 	DryRun     bool      `json:"dry_run"`
+	// ListedRef is the agent ref the listing was last sent under, so a changed ref can be removed.
+	ListedRef     string    `json:"listed_ref,omitempty"`
+	Pending       bool      `json:"pending,omitempty"`
+	Attempts      int       `json:"attempts,omitempty"`
+	NextAttemptAt time.Time `json:"next_attempt_at,omitempty"`
 }
 
 // AgentRef is the unique reference the agency uses for this property on portals.

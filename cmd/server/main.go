@@ -72,6 +72,11 @@ func run(log *slog.Logger) error {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	workerDone := make(chan struct{})
+	go func() {
+		srv.RunRightmoveWorker(ctx)
+		close(workerDone)
+	}()
 	errCh := make(chan error, 1)
 	go func() {
 		log.Info("listening", "addr", cfg.Addr, "rightmove_mode", rm.Mode())
@@ -86,7 +91,9 @@ func run(log *slog.Logger) error {
 		log.Info("shutting down")
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		return httpSrv.Shutdown(shutdownCtx)
+		err := httpSrv.Shutdown(shutdownCtx)
+		<-workerDone
+		return err
 	}
 	return nil
 }

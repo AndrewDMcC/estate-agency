@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/AndrewDMcC/estate-agency/internal/config"
 	"github.com/AndrewDMcC/estate-agency/internal/rightmove"
@@ -133,7 +135,12 @@ func TestAdminSync(t *testing.T) {
 		t.Fatalf("expected redirect, got %d: %s", rec.Code, rec.Body.String())
 	}
 	p, _ := st.GetProperty("000001")
-	if p.Rightmove.LastSyncAt.IsZero() || !p.Rightmove.DryRun || p.Rightmove.LastError != "" {
+	if !p.Rightmove.Pending {
+		t.Fatalf("sync should queue the property: %+v", p.Rightmove)
+	}
+	srv.processRightmoveQueue(context.Background(), time.Now().UTC())
+	p, _ = st.GetProperty("000001")
+	if p.Rightmove.Pending || p.Rightmove.LastSyncAt.IsZero() || !p.Rightmove.DryRun || p.Rightmove.LastError != "" {
 		t.Errorf("unexpected sync state: %+v", p.Rightmove)
 	}
 }

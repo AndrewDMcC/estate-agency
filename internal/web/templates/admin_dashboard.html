@@ -46,4 +46,4 @@
 </div>
 {{end}}
 
-{{define "rm-status"}}{{if .Rightmove.LastError}}<span class="pill pill--err" title="{{.Rightmove.LastError}}">Error</span>{{else if .Rightmove.Listed}}<span class="pill pill--ok">Listed</span>{{else if and .Rightmove.DryRun (not .Rightmove.LastSyncAt.IsZero)}}<span class="pill" title="Payload logged, not sent">Dry run OK</span>{{else}}<span class="pill">Not sent</span>{{end}}{{end}}
+{{define "rm-status"}}{{if .Rightmove.Pending}}{{if .Rightmove.LastError}}<span class="pill pill--err" title="{{.Rightmove.LastError}}">Retrying</span>{{else}}<span class="pill pill--accent" title="Waiting to be sent">Queued</span>{{end}}{{else if .Rightmove.LastError}}<span class="pill pill--err" title="{{.Rightmove.LastError}}">Error</span>{{else if .Rightmove.Listed}}<span class="pill pill--ok">Listed</span>{{else if and .Rightmove.DryRun (not .Rightmove.LastSyncAt.IsZero)}}<span class="pill" title="Payload logged, not sent">Dry run OK</span>{{else}}<span class="pill">Not sent</span>{{end}}{{end}}
