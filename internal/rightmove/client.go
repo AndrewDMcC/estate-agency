@@ -48,6 +48,8 @@ type Config struct {
 	BranchID  int
 	CertFile  string
 	KeyFile   string
+	CertPEM   string
+	KeyPEM    string
 	APIBase   string
 }
 
@@ -77,10 +79,16 @@ func New(cfg Config, log *slog.Logger) (*Client, error) {
 	if cfg.NetworkID == 0 || cfg.BranchID == 0 {
 		return nil, errors.New("rightmove: network and branch IDs are required outside dry-run mode")
 	}
-	if cfg.CertFile == "" || cfg.KeyFile == "" {
-		return nil, errors.New("rightmove: client certificate and key files are required outside dry-run mode")
+	var cert tls.Certificate
+	var err error
+	switch {
+	case cfg.CertPEM != "" && cfg.KeyPEM != "":
+		cert, err = tls.X509KeyPair([]byte(cfg.CertPEM), []byte(cfg.KeyPEM))
+	case cfg.CertFile != "" && cfg.KeyFile != "":
+		cert, err = tls.LoadX509KeyPair(cfg.CertFile, cfg.KeyFile)
+	default:
+		return nil, errors.New("rightmove: client certificate and key are required outside dry-run mode")
 	}
-	cert, err := tls.LoadX509KeyPair(cfg.CertFile, cfg.KeyFile)
 	if err != nil {
 		return nil, fmt.Errorf("rightmove: load client certificate: %w", err)
 	}

@@ -25,6 +25,7 @@ Open http://localhost:8080. The admin area is at `/admin` (HTTP basic auth). Dem
 | `RIGHTMOVE_BRANCH_ID` | | Branch ID issued by Rightmove |
 | `RIGHTMOVE_CERT_FILE` | | RTDF client certificate (PEM) |
 | `RIGHTMOVE_KEY_FILE` | | RTDF client key (PEM) |
+| `RIGHTMOVE_CERT_PEM` / `RIGHTMOVE_KEY_PEM` | | Certificate and key contents, instead of files (for hosting secrets) |
 | `RIGHTMOVE_API_BASE` | | Override the RTDF endpoint |
 
 In `dryrun` mode, Rightmove payloads are built and logged but not sent.
@@ -34,3 +35,18 @@ In `dryrun` mode, Rightmove payloads are built and logged but not sent.
 ```sh
 go test ./...
 ```
+
+## Deploy (Fly.io)
+
+`fly.toml` runs one machine in London (`lhr`) with a 1 GB volume mounted at `/data` for the database and photos. Keep it to a single machine: bbolt is a single-file database.
+
+```sh
+fly launch --no-deploy --copy-config --name <app-name>
+fly volumes create data --region lhr --size 1
+fly secrets set ADMIN_PASSWORD=<password> BASE_URL=https://<your-domain>
+fly deploy
+fly certs add <your-domain>
+```
+
+For Rightmove, set `RIGHTMOVE_MODE`, `RIGHTMOVE_NETWORK_ID`, `RIGHTMOVE_BRANCH_ID`, `RIGHTMOVE_CERT_PEM` and `RIGHTMOVE_KEY_PEM` with `fly secrets set`.
+

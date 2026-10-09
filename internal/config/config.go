@@ -31,6 +31,8 @@ func Load() (Config, error) {
 			Mode:     rightmove.Mode(env("RIGHTMOVE_MODE", string(rightmove.ModeDryRun))),
 			CertFile: os.Getenv("RIGHTMOVE_CERT_FILE"),
 			KeyFile:  os.Getenv("RIGHTMOVE_KEY_FILE"),
+			CertPEM:  os.Getenv("RIGHTMOVE_CERT_PEM"),
+			KeyPEM:   os.Getenv("RIGHTMOVE_KEY_PEM"),
 			APIBase:  os.Getenv("RIGHTMOVE_API_BASE"),
 		},
 	}

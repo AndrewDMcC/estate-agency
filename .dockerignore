@@ -1,0 +1,7 @@
+.git
+bin
+data
+*.pem
+*.key
+*.p12
+.env
