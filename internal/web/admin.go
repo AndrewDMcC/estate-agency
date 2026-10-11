@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -57,8 +58,13 @@ type propertyForm struct {
 	FeaturesText      string
 	Statuses          []models.Status
 	Types             []string
+	Towns             []string
+	Styles            []string
+	Ages              []string
+	MustHaves         []string
 	Qualifiers        []string
 	RightmoveProblems []string
+	Matches           []*models.Registration
 }
 
 type settingsForm struct {
@@ -152,27 +158,56 @@ func (s *Server) adminDashboard(w http.ResponseWriter, r *http.Request) {
 		dashboardData{Properties: props, Enquiries: enqs, EnquiryCount: count, RegistrationCount: regCount, LiveCount: live}, http.StatusOK)
 }
 
-func newPropertyForm(p *models.Property, isNew bool, errs map[string]string) propertyForm {
+// registerOptions returns the admin-managed pick-lists, falling back to the defaults on error.
+func (s *Server) registerOptions() models.RegisterOptions {
+	opts, err := s.store.GetRegisterOptions()
+	if err != nil {
+		s.log.Error("loading register options", "err", err)
+		return models.DefaultRegisterOptions()
+	}
+	return opts
+}
+
+// withCurrent offers the admin list plus the property's existing value if it is no longer listed.
+func withCurrent(list []string, current string) []string {
+	if current == "" || slices.Contains(list, current) {
+		return list
+	}
+	return append([]string{current}, list...)
+}
+
+func (s *Server) newPropertyForm(p *models.Property, isNew bool, errs map[string]string) propertyForm {
+	opts := s.registerOptions()
 	f := propertyForm{
 		Property: p, IsNew: isNew, Errors: errs,
 		PhotosText: strings.Join(p.Photos, "\n"), FeaturesText: strings.Join(p.Features, "\n"),
-		Statuses: models.Statuses, Types: models.PropertyTypes, Qualifiers: models.PriceQualifiers,
+		Statuses: models.Statuses, Qualifiers: models.PriceQualifiers,
+		Types:     withCurrent(opts.PropertyTypes, p.PropertyType),
+		Towns:     withCurrent(opts.Towns, p.Town),
+		Styles:    withCurrent(opts.Styles, p.Style),
+		Ages:      withCurrent(opts.Ages, p.Age),
+		MustHaves: models.MustHaves,
 	}
 	if !isNew && p.Live() {
 		f.RightmoveProblems = rightmove.Validate(p)
+		matches, err := s.matchingBuyers(p)
+		if err != nil {
+			s.log.Error("matching buyers", "err", err)
+		}
+		f.Matches = matches
 	}
 	return f
 }
 
 func (s *Server) adminNewProperty(w http.ResponseWriter, r *http.Request) {
-	p := &models.Property{Status: models.StatusAvailable, Published: true, PropertyType: "Detached"}
-	s.renderAdmin(w, r, "admin_property_form", "new", "Add property", newPropertyForm(p, true, nil), http.StatusOK)
+	p := &models.Property{Status: models.StatusAvailable, Published: true}
+	s.renderAdmin(w, r, "admin_property_form", "new", "Add property", s.newPropertyForm(p, true, nil), http.StatusOK)
 }
 
 func (s *Server) adminCreateProperty(w http.ResponseWriter, r *http.Request) {
 	p := &models.Property{}
 	if errs := s.bindProperty(r, p); len(errs) > 0 {
-		s.renderAdmin(w, r, "admin_property_form", "new", "Add property", newPropertyForm(p, true, errs), http.StatusUnprocessableEntity)
+		s.renderAdmin(w, r, "admin_property_form", "new", "Add property", s.newPropertyForm(p, true, errs), http.StatusUnprocessableEntity)
 		return
 	}
 	if err := s.store.SaveProperty(p); err != nil {
@@ -201,7 +236,7 @@ func (s *Server) adminEditProperty(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	s.renderAdmin(w, r, "admin_property_form", "dashboard", "Edit "+p.Address(), newPropertyForm(p, false, nil), http.StatusOK)
+	s.renderAdmin(w, r, "admin_property_form", "dashboard", "Edit "+p.Address(), s.newPropertyForm(p, false, nil), http.StatusOK)
 }
 
 func (s *Server) adminUpdateProperty(w http.ResponseWriter, r *http.Request) {
@@ -210,7 +245,7 @@ func (s *Server) adminUpdateProperty(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if errs := s.bindProperty(r, p); len(errs) > 0 {
-		s.renderAdmin(w, r, "admin_property_form", "dashboard", "Edit "+p.Address(), newPropertyForm(p, false, errs), http.StatusUnprocessableEntity)
+		s.renderAdmin(w, r, "admin_property_form", "dashboard", "Edit "+p.Address(), s.newPropertyForm(p, false, errs), http.StatusUnprocessableEntity)
 		return
 	}
 	if err := s.store.SaveProperty(p); err != nil {
@@ -341,15 +376,19 @@ func (s *Server) adminSaveSettings(w http.ResponseWriter, r *http.Request) {
 func (s *Server) bindProperty(r *http.Request, p *models.Property) map[string]string {
 	errs := map[string]string{}
 	v := func(k string) string { return strings.TrimSpace(r.FormValue(k)) }
+	opts := s.registerOptions()
 	p.Ref = v("ref")
 	p.HouseNumber = v("house_number")
 	p.Street = v("street")
 	p.Locality = v("locality")
-	p.Town = v("town")
+	p.Town = oneOf(v("town"), withCurrent(opts.Towns, p.Town), "")
+	p.PropertyType = oneOf(v("property_type"), withCurrent(opts.PropertyTypes, p.PropertyType), "")
+	p.Style = oneOf(v("style"), withCurrent(opts.Styles, p.Style), "")
+	p.Age = oneOf(v("age"), withCurrent(opts.Ages, p.Age), "")
+	p.MustHaves = picked(r.Form["must_haves"], models.MustHaves)
 	p.Postcode = strings.ToUpper(v("postcode"))
 	p.DisplayAddress = v("display_address")
 	p.PriceQualifier = oneOf(v("price_qualifier"), models.PriceQualifiers, "")
-	p.PropertyType = oneOf(v("property_type"), models.PropertyTypes, models.PropertyTypes[0])
 	p.Summary = v("summary")
 	p.Description = v("description")
 	p.Features = splitLines(v("features"))
@@ -393,7 +432,10 @@ func (s *Server) bindProperty(r *http.Request, p *models.Property) map[string]st
 		errs["street"] = "Street is required."
 	}
 	if p.Town == "" {
-		errs["town"] = "Town is required."
+		errs["town"] = "Choose a town. Add new towns under Register options."
+	}
+	if p.PropertyType == "" {
+		errs["property_type"] = "Choose a property type."
 	}
 	if !rightmove.ValidPostcode(p.Postcode) {
 		errs["postcode"] = "Enter a full UK postcode, e.g. GU1 3AA."

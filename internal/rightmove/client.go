@@ -247,17 +247,34 @@ type removeProperty struct {
 }
 
 // Rightmove property type codes (verify against the RTDF code list).
-var propertyTypeCodes = map[string]int{
-	"Terraced":       1,
-	"End of Terrace": 2,
-	"Semi-Detached":  3,
-	"Detached":       4,
-	"Flat":           8,
-	"Maisonette":     11,
-	"Bungalow":       12,
-	"Land":           20,
-	"Town House":     22,
-	"Cottage":        23,
+// Checked in order, so more specific wording comes first.
+var propertyTypeCodes = []struct {
+	keywords []string
+	code     int
+}{
+	{[]string{"end of terrace", "end terrace", "end-terrace"}, 2},
+	{[]string{"semi"}, 3},
+	{[]string{"terrace"}, 1},
+	{[]string{"maisonette"}, 11},
+	{[]string{"town house", "townhouse"}, 22},
+	{[]string{"bungalow"}, 12},
+	{[]string{"cottage"}, 23},
+	{[]string{"detached"}, 4},
+	{[]string{"flat", "apartment"}, 8},
+	{[]string{"land", "plot"}, 20},
+}
+
+// PropertyTypeCode maps the agency's own property type wording to a Rightmove code.
+func PropertyTypeCode(name string) (int, bool) {
+	name = strings.ToLower(name)
+	for _, t := range propertyTypeCodes {
+		for _, k := range t.keywords {
+			if strings.Contains(name, k) {
+				return t.code, true
+			}
+		}
+	}
+	return 0, false
 }
 
 // Rightmove price qualifier codes (verify against the RTDF code list).
@@ -287,7 +304,7 @@ func BuildSendRequest(cfg Config, p *models.Property, baseURL string) sendReques
 		Property: sendProperty{
 			AgentRef:     p.AgentRef(),
 			Published:    p.Live(),
-			PropertyType: propertyTypeCodes[p.PropertyType],
+			PropertyType: propertyTypeCode(p.PropertyType),
 			Status:       statusCodes[p.Status],
 			Address: address{
 				HouseNameNumber: p.HouseNumber,
@@ -357,7 +374,7 @@ func Validate(p *models.Property) []string {
 	if strings.TrimSpace(p.Description) == "" {
 		problems = append(problems, "description is required")
 	}
-	if _, ok := propertyTypeCodes[p.PropertyType]; !ok {
+	if _, ok := PropertyTypeCode(p.PropertyType); !ok {
 		problems = append(problems, "property type is not mapped to a Rightmove code")
 	}
 	if _, ok := statusCodes[p.Status]; !ok {
@@ -367,4 +384,9 @@ func Validate(p *models.Property) []string {
 		problems = append(problems, "at least one photo is required")
 	}
 	return problems
+}
+
+func propertyTypeCode(name string) int {
+	code, _ := PropertyTypeCode(name)
+	return code
 }

@@ -66,3 +66,19 @@ func TestDryRunAndValidate(t *testing.T) {
 		t.Fatal("expected error for live mode without credentials")
 	}
 }
+
+func TestPropertyTypeCode(t *testing.T) {
+	cases := map[string]int{
+		"Detached": 4, "Semi-detached": 3, "Semi-Detached": 3, "Terraced": 1, "End of terrace": 2,
+		"Bungalow": 12, "Detached bungalow": 12, "Cottage": 23, "Town house": 22, "Flat / apartment": 8,
+		"Maisonette": 11, "Land / building plot": 20,
+	}
+	for name, want := range cases {
+		if got, ok := PropertyTypeCode(name); !ok || got != want {
+			t.Errorf("PropertyTypeCode(%q) = %d, %v; want %d", name, got, ok, want)
+		}
+	}
+	if _, ok := PropertyTypeCode("Houseboat"); ok {
+		t.Error("unknown type should not map")
+	}
+}

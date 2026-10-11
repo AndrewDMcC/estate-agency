@@ -207,7 +207,23 @@ func (s *Server) adminRegistrations(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, err)
 		return
 	}
-	s.renderAdmin(w, r, "admin_registrations", "registrations", "Registered buyers", regs, http.StatusOK)
+	props, err := s.store.ListProperties((*models.Property).Live)
+	if err != nil {
+		s.serverError(w, err)
+		return
+	}
+	rows := make([]buyerRow, len(regs))
+	for i, reg := range regs {
+		rows[i].Registration = reg
+		if reg.Consent {
+			for _, p := range props {
+				if reg.Matches(p) {
+					rows[i].Matches = append(rows[i].Matches, p)
+				}
+			}
+		}
+	}
+	s.renderAdmin(w, r, "admin_registrations", "registrations", "Registered buyers", rows, http.StatusOK)
 }
 
 func (s *Server) adminRegisterOptions(w http.ResponseWriter, r *http.Request) {
@@ -243,4 +259,27 @@ func (s *Server) adminSaveRegisterOptions(w http.ResponseWriter, r *http.Request
 		return
 	}
 	http.Redirect(w, r, "/admin/register-options?msg=options", http.StatusSeeOther)
+}
+
+type buyerRow struct {
+	*models.Registration
+	Matches []*models.Property
+}
+
+// matchingBuyers lists registered buyers who agreed to be contacted and whose preferences fit p.
+func (s *Server) matchingBuyers(p *models.Property) ([]*models.Registration, error) {
+	if !p.Live() {
+		return nil, nil
+	}
+	regs, err := s.store.ListRegistrations(0)
+	if err != nil {
+		return nil, err
+	}
+	var out []*models.Registration
+	for _, reg := range regs {
+		if reg.Consent && reg.Matches(p) {
+			out = append(out, reg)
+		}
+	}
+	return out, nil
 }

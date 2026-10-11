@@ -39,11 +39,6 @@ func ValidStatus(s Status) bool {
 	return false
 }
 
-var PropertyTypes = []string{
-	"Detached", "Semi-Detached", "Terraced", "End of Terrace", "Town House",
-	"Cottage", "Bungalow", "Flat", "Maisonette", "Land",
-}
-
 var PriceQualifiers = []string{
 	"", "Guide Price", "Offers Over", "Offers in Excess of", "Offers in Region of",
 	"Fixed Price", "From", "POA",
@@ -61,6 +56,9 @@ type Property struct {
 	Price          int           `json:"price"`
 	PriceQualifier string        `json:"price_qualifier"`
 	PropertyType   string        `json:"property_type"`
+	Style          string        `json:"style,omitempty"`
+	Age            string        `json:"age,omitempty"`
+	MustHaves      []string      `json:"must_haves,omitempty"`
 	Bedrooms       int           `json:"bedrooms"`
 	Bathrooms      int           `json:"bathrooms"`
 	Lounges        int           `json:"lounges"`
@@ -304,4 +302,41 @@ func (r *Registration) BudgetText() string {
 	default:
 		return "Any"
 	}
+}
+
+// Matches reports whether p fits the buyer's preferences. Blank preferences match anything,
+// and a property with no style or age set is not excluded by those preferences.
+func (r *Registration) Matches(p *Property) bool {
+	if p.Price > 0 && p.PriceQualifier != "POA" {
+		if p.Price < r.MinPrice || (r.MaxPrice > 0 && p.Price > r.MaxPrice) {
+			return false
+		}
+	}
+	if p.Bedrooms < r.MinBedrooms {
+		return false
+	}
+	if !anyFold(r.Towns, p.Town, false) || !anyFold(r.PropertyTypes, p.PropertyType, false) ||
+		!anyFold(r.Styles, p.Style, true) || !anyFold(r.Ages, p.Age, true) {
+		return false
+	}
+	for _, m := range r.MustHaves {
+		if !anyFold(p.MustHaves, m, false) {
+			return false
+		}
+	}
+	return true
+}
+
+// anyFold reports whether v is in wanted (ignoring case). An empty wanted list matches anything,
+// as does an empty v when unsetMatches is true.
+func anyFold(wanted []string, v string, unsetMatches bool) bool {
+	if len(wanted) == 0 || (unsetMatches && v == "") {
+		return true
+	}
+	for _, w := range wanted {
+		if strings.EqualFold(strings.TrimSpace(w), strings.TrimSpace(v)) {
+			return true
+		}
+	}
+	return false
 }

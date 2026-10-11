@@ -13,7 +13,7 @@
       <label>House name / number<input name="house_number" value="{{$p.HouseNumber}}"></label>
       <label class="{{if $e.street}}has-error{{end}}">Street *<input name="street" value="{{$p.Street}}" required>{{template "err" $e.street}}</label>
       <label>Area / village<input name="locality" value="{{$p.Locality}}"></label>
-      <label class="{{if $e.town}}has-error{{end}}">Town *<input name="town" value="{{$p.Town}}" required>{{template "err" $e.town}}</label>
+      <label class="{{if $e.town}}has-error{{end}}">Town *<select name="town" required><option value="">Choose…</option>{{range $f.Towns}}<option{{if eq . $p.Town}} selected{{end}}>{{.}}</option>{{end}}</select>{{template "err" $e.town}}</label>
       <label class="{{if $e.postcode}}has-error{{end}}">Postcode *<input name="postcode" value="{{$p.Postcode}}" required>{{template "err" $e.postcode}}</label>
       <label>Display address<input name="display_address" value="{{$p.DisplayAddress}}" placeholder="Defaults to street, area, town"></label>
       <label class="{{if $e.location}}has-error{{end}}">Latitude<input name="latitude" value="{{if $p.HasLocation}}{{$p.Latitude}}{{end}}" placeholder="e.g. 51.2365">{{template "err" $e.location}}</label>
@@ -25,7 +25,9 @@
     <div class="grid">
       <label class="{{if $e.price}}has-error{{end}}">Price (£) *<input name="price" inputmode="numeric" value="{{if $p.Price}}{{$p.Price}}{{end}}">{{template "err" $e.price}}</label>
       <label>Price qualifier<select name="price_qualifier">{{range $f.Qualifiers}}<option value="{{.}}"{{if eq . $p.PriceQualifier}} selected{{end}}>{{if .}}{{.}}{{else}}None{{end}}</option>{{end}}</select></label>
-      <label>Property type<select name="property_type">{{range $f.Types}}<option{{if eq . $p.PropertyType}} selected{{end}}>{{.}}</option>{{end}}</select></label>
+      <label class="{{if $e.property_type}}has-error{{end}}">Property type *<select name="property_type" required><option value="">Choose…</option>{{range $f.Types}}<option{{if eq . $p.PropertyType}} selected{{end}}>{{.}}</option>{{end}}</select>{{template "err" $e.property_type}}</label>
+      <label>Style<select name="style"><option value="">Not set</option>{{range $f.Styles}}<option{{if eq . $p.Style}} selected{{end}}>{{.}}</option>{{end}}</select></label>
+      <label>Age<select name="age"><option value="">Not set</option>{{range $f.Ages}}<option{{if eq . $p.Age}} selected{{end}}>{{.}}</option>{{end}}</select></label>
       <label>Reference<input name="ref" value="{{$p.Ref}}" placeholder="Auto if blank"></label>
       <label class="{{if $e.bedrooms}}has-error{{end}}">Bedrooms<input name="bedrooms" type="number" min="0" max="50" value="{{$p.Bedrooms}}">{{template "err" $e.bedrooms}}</label>
       <label class="{{if $e.bathrooms}}has-error{{end}}">Bathrooms<input name="bathrooms" type="number" min="0" max="50" value="{{$p.Bathrooms}}">{{template "err" $e.bathrooms}}</label>
@@ -33,6 +35,11 @@
       <label>Status<select name="status">{{range $f.Statuses}}<option value="{{.}}"{{if eq . $p.Status}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
     </div>
     <label class="check"><input type="checkbox" name="published"{{if $p.Published}} checked{{end}}> Published on website (and sent to Rightmove)</label>
+    <p class="muted small">Town, type, style and age lists are edited under <a href="/admin/register-options">Register options</a>, so they match what buyers choose when they register.</p>
+  </fieldset>
+  <fieldset>
+    <legend>Has <small>(used to match registered buyers)</small></legend>
+    <div class="checks">{{range $f.MustHaves}}<label><input type="checkbox" name="must_haves" value="{{.}}"{{if has $p.MustHaves .}} checked{{end}}> {{.}}</label>{{end}}</div>
   </fieldset>
   <fieldset>
     <legend>Description</legend>
@@ -51,6 +58,17 @@
 
 {{if not $f.IsNew}}
 <aside class="side">
+  <div class="card">
+    <h3>Matching buyers ({{len $f.Matches}})</h3>
+    {{if not $p.Live}}<p class="muted small">Only published, unsold properties are matched.</p>
+    {{else}}{{range $f.Matches}}
+    <div class="match">
+      <a href="/admin/registrations#reg-{{.ID}}"><strong>{{.FullName}}</strong></a>
+      <div class="small"><a href="tel:{{.Phone}}">{{.Phone}}</a> · <a href="mailto:{{.Email}}">{{.Email}}</a></div>
+      <div class="small muted">{{.BudgetText}} · {{.Position}}</div>
+    </div>
+    {{else}}<p class="muted small">No registered buyers match this property yet.</p>{{end}}{{end}}
+  </div>
   <div class="card">
     <h3>Rightmove</h3>
     <p>Mode: <strong>{{.RightmoveMode}}</strong></p>

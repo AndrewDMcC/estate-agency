@@ -2,7 +2,7 @@
 <div class="page-title"><h1>Registered buyers</h1><a href="/admin/register-options">Edit register options &rarr;</a></div>
 <div class="enquiries">
 {{range .Data}}
-  <article class="card enquiry">
+  <article class="card enquiry" id="reg-{{.ID}}">
     <header>
       <span class="pill pill--accent">Buyer</span>
       <strong>{{.FullName}}</strong>
@@ -22,6 +22,11 @@
       {{with .MustHaves}}<dt>Must-haves</dt><dd>{{join .}}</dd>{{end}}
     </dl>
     {{with .Notes}}<p class="message">{{.}}</p>{{end}}
+    <details class="matches"{{if .Matches}} open{{end}}>
+      <summary>Matching properties ({{len .Matches}})</summary>
+      {{range .Matches}}<div class="match"><a href="/admin/properties/{{.ID}}">{{.Address}}</a> <span class="muted small">{{.PriceText}} · {{.Bedrooms}} bed · {{.PropertyType}} · {{.Status.Label}}</span></div>
+      {{else}}<p class="muted small">No current properties match these preferences.</p>{{end}}
+    </details>
   </article>
 {{else}}
   <p>No buyers have registered yet. Registrations from the website's Register page appear here.</p>

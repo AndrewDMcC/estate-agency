@@ -62,3 +62,7 @@ a.stat{text-decoration:none;color:inherit}
 .enquiry dt{color:var(--muted)}.enquiry dd{margin:0}
 .enquiry .message{white-space:pre-wrap;background:#f6f7f9;padding:10px 12px;border-radius:8px;margin:12px 0 0}
 @media (max-width:900px){.form-layout,.stats,.options-grid{grid-template-columns:1fr}.table{display:block;overflow-x:auto}}
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px 16px}
+.form .checks label{flex-direction:row;align-items:center;gap:8px;font-weight:400}
+.match{padding:8px 0;border-top:1px solid #e5e7eb}.match:first-of-type{border-top:0}
+.matches{margin-top:12px}.matches summary{cursor:pointer;font-weight:600;color:var(--brand)}
