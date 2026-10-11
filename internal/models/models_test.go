@@ -26,6 +26,9 @@ func TestRegistrationMatches(t *testing.T) {
 			t.Errorf("%s: got %v, want %v", c.name, got, c.want)
 		}
 	}
+	if (&Registration{MustHaves: []string{"Garden"}}).Matches(&Property{Town: "Farnsfield"}) {
+		t.Error("a property with no must-haves ticked should not match a buyer who needs one")
+	}
 	poa := &Property{PriceQualifier: "POA", Town: "Farnsfield"}
 	if !(&Registration{MaxPrice: 100000}).Matches(poa) {
 		t.Error("POA properties should not be excluded by price")

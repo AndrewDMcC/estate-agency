@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 )
@@ -322,7 +323,7 @@ func (r *Registration) Matches(p *Property) bool {
 		return false
 	}
 	for _, m := range r.MustHaves {
-		if !anyFold(p.MustHaves, m, false) {
+		if !slices.ContainsFunc(p.MustHaves, func(h string) bool { return strings.EqualFold(h, m) }) {
 			return false
 		}
 	}
