@@ -3,7 +3,7 @@ package models
 import "testing"
 
 func TestRegistrationMatches(t *testing.T) {
-	p := &Property{Price: 400000, Bedrooms: 3, Town: "Farnsfield", PropertyType: "Detached", Style: "Modern", MustHaves: []string{"Garden", "Garage"}}
+	p := &Property{Price: 400000, Bedrooms: 3, Town: "Farnsfield", Locality: "Edingley", PropertyType: "Detached", Style: "Modern", MustHaves: []string{"Garden", "Garage"}}
 	cases := []struct {
 		name string
 		reg  Registration
@@ -16,6 +16,7 @@ func TestRegistrationMatches(t *testing.T) {
 		{"under minimum price", Registration{MinPrice: 450000}, false},
 		{"too few bedrooms", Registration{MinBedrooms: 4}, false},
 		{"other town", Registration{Towns: []string{"Southwell"}}, false},
+		{"village matches", Registration{Towns: []string{"Edingley"}}, true},
 		{"other type", Registration{PropertyTypes: []string{"Bungalow"}}, false},
 		{"other style", Registration{Styles: []string{"Period"}}, false},
 		{"missing must-have", Registration{MustHaves: []string{"Annexe"}}, false},

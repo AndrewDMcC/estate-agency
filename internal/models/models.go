@@ -305,7 +305,8 @@ func (r *Registration) BudgetText() string {
 }
 
 // Matches reports whether p fits the buyer's preferences. Blank preferences match anything,
-// and a property with no style or age set is not excluded by those preferences.
+// a property's village (Locality) counts as well as its town, and a property with no style or
+// age set is not excluded by those preferences.
 func (r *Registration) Matches(p *Property) bool {
 	if p.Price > 0 && p.PriceQualifier != "POA" {
 		if p.Price < r.MinPrice || (r.MaxPrice > 0 && p.Price > r.MaxPrice) {
@@ -315,7 +316,8 @@ func (r *Registration) Matches(p *Property) bool {
 	if p.Bedrooms < r.MinBedrooms {
 		return false
 	}
-	if !anyFold(r.Towns, p.Town, false) || !anyFold(r.PropertyTypes, p.PropertyType, false) ||
+	inArea := anyFold(r.Towns, p.Town, false) || (p.Locality != "" && anyFold(r.Towns, p.Locality, false))
+	if !inArea || !anyFold(r.PropertyTypes, p.PropertyType, false) ||
 		!anyFold(r.Styles, p.Style, true) || !anyFold(r.Ages, p.Age, true) {
 		return false
 	}
