@@ -43,10 +43,12 @@ go test ./...
 ```sh
 fly launch --no-deploy --copy-config --name <app-name>
 fly volumes create data --region lhr --size 1
-fly secrets set ADMIN_PASSWORD=<password> BASE_URL=https://<your-domain>
+fly secrets set ADMIN_PASSWORD=<password>
 fly deploy
 fly certs add <your-domain>
 ```
+
+Set `BASE_URL` in `fly.toml` to the site's public address (it's used for the photo links sent to Rightmove).
 
 For Rightmove, set `RIGHTMOVE_MODE`, `RIGHTMOVE_NETWORK_ID`, `RIGHTMOVE_BRANCH_ID`, `RIGHTMOVE_CERT_PEM` and `RIGHTMOVE_KEY_PEM` with `fly secrets set`.
 

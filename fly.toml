@@ -5,6 +5,7 @@ primary_region = "lhr"
 
 [env]
   DATA_DIR = "/data"
+  BASE_URL = "https://jfea-estate-agency.fly.dev"
   SEED_DEMO = "false"
   RIGHTMOVE_MODE = "dryrun"
 
